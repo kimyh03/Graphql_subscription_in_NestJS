@@ -1,39 +1,45 @@
 import 'reflect-metadata';
-import {
-  Resolver,
-  Query,
-  Mutation,
-  Args,
-  InputType,
-  Field,
-} from '@nestjs/graphql';
-import { Inject } from '@nestjs/common';
+import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { User } from './user';
-import { PrismaService } from '../prisma.service';
-
-@InputType()
-class SignupUserInput {
-  @Field({ nullable: true })
-  name: string;
-}
+import { UserService } from './user.service';
+import { AuthService } from 'src/auth/auth.service';
+import { SignUpUserInput, SignUpUserOutput } from './dto/signUpUser.dto';
+import { CurrentUser } from 'src/auth/currentUser.decorator';
+import { GetMeOutput } from './dto/getMe.dto';
+import { UseGuards } from '@nestjs/common';
+import { LogInOnly } from 'src/auth/logInOnly.guard';
 
 @Resolver(User)
 export class UserResolver {
-  constructor(@Inject(PrismaService) private prismaService: PrismaService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
-  @Mutation(() => User)
-  async signupUser(@Args('data') data: SignupUserInput): Promise<User> {
-    return this.prismaService.user.create({
-      data: {
-        name: data.name,
-      },
-    });
+  @Mutation(() => SignUpUserOutput)
+  async signupUser(
+    @Args('data') data: SignUpUserInput,
+  ): Promise<SignUpUserOutput> {
+    try {
+      const { name } = data;
+      const newUser = await this.userService.create(name);
+      const token = this.authService.sign(newUser.id);
+      return { ok: true, error: null, token };
+    } catch (error) {
+      return { ok: false, error: error.message, token: null };
+    }
   }
 
-  @Query(() => User, { nullable: true })
-  async user(@Args('id') id: number) {
-    return this.prismaService.user.findUnique({
-      where: { id: id },
-    });
+  @UseGuards(LogInOnly)
+  @Query(() => GetMeOutput)
+  async getMe(@CurrentUser() currnetUser: User): Promise<GetMeOutput> {
+    try {
+      const user = await this.userService.findOneById(currnetUser.id, [
+        'posts',
+      ]);
+      return { ok: true, error: null, user };
+    } catch (error) {
+      return { ok: false, error: error.message, user: null };
+    }
   }
 }

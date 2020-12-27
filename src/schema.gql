@@ -2,10 +2,48 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Comment {
+  id: ID!
+  text: String!
+  user: User!
+  post: Post!
+}
+
+type Like {
+  id: ID!
+  user: User!
+  post: Post!
+}
+
+type Notification {
+  id: ID!
+  user: User!
+  post: Post!
+  isChecked: Boolean!
+  type: NotificationTypea!
+}
+
+enum NotificationTypea {
+  COMMENT
+  LIKE
+}
+
+type Post {
+  id: ID!
+  text: String!
+  user: User!
+  comments: [Comment!]
+  likes: [Like!]
+  notifications: [Notification!]
+}
+
 type User {
   id: ID!
-  email: String!
-  name: String
+  name: String!
+  posts: [Post!]
+  comments: [Comment!]
+  likes: [Like!]
+  notifications: [Notification!]
 }
 
 type Query {
@@ -18,5 +56,4 @@ type Mutation {
 
 input SignupUserInput {
   name: String
-  email: String!
 }

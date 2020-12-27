@@ -15,9 +15,6 @@ import { PrismaService } from '../prisma.service';
 class SignupUserInput {
   @Field({ nullable: true })
   name: string;
-
-  @Field()
-  email: string;
 }
 
 @Resolver(User)
@@ -28,7 +25,6 @@ export class UserResolver {
   async signupUser(@Args('data') data: SignupUserInput): Promise<User> {
     return this.prismaService.user.create({
       data: {
-        email: data.email,
         name: data.name,
       },
     });

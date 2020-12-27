@@ -12,6 +12,52 @@ generator client {
 }
 
 model User {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  posts         Post[]
+  comments      Comment[]
+  notifications notification[]
+  lieks         Like[]
+}
+
+model Post {
+  id           Int            @id @default(autoincrement())
+  text         String
+  user         User           @relation(fields: [userId], references: [id])
+  userId       Int
+  comments     Comment[]
+  likes        Like[]
+  notification notification[]
+}
+
+model Comment {
+  id     Int    @id @default(autoincrement())
+  user   User   @relation(fields: [userId], references: [id])
+  userId Int
+  Post   Post   @relation(fields: [postId], references: [id])
+  postId Int
+  text   String
+}
+
+model Like {
+  id     Int  @id @default(autoincrement())
+  Post   Post @relation(fields: [postId], references: [id])
+  postId Int
+  User   User @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model notification {
+  id        Int              @id @default(autoincrement())
+  User      User             @relation(fields: [userId], references: [id])
+  userId    Int
+  post      Post             @relation(fields: [postId], references: [id])
+  postId    Int
+  type      NotificationType
+  isChecked Boolean          @default(false)
+}
+
+enum NotificationType {
+  COMMENT
+  LIKE
 }

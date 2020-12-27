@@ -46,14 +46,85 @@ type User {
   notifications: [Notification!]
 }
 
+type CreateCommentOutput {
+  ok: Boolean!
+  error: String
+}
+
+type ToggleLikeOutput {
+  ok: Boolean!
+  error: String
+}
+
+type CreatePostOutput {
+  ok: Boolean!
+  error: String
+  post: Post
+}
+
+type EditPostOutput {
+  ok: Boolean!
+  error: String
+  post: Post
+}
+
+type DeletePostOutput {
+  ok: Boolean!
+  error: String
+}
+
+type SignUpUserOutput {
+  ok: Boolean!
+  error: String
+  token: String
+}
+
+type GetMeOutput {
+  ok: Boolean!
+  error: String
+  user: User
+}
+
 type Query {
-  user(id: Float!): User
+  getPostDetail(data: GetPostInput!): DeletePostOutput!
+  getMe: GetMeOutput!
+}
+
+input GetPostInput {
+  postId: Float!
 }
 
 type Mutation {
-  signupUser(data: SignupUserInput!): User!
+  createComment(data: CreateCommentInput!): CreateCommentOutput!
+  toggleLike(data: ToggleLikeInput!): ToggleLikeOutput!
+  createPost(data: CreatePostInput!): CreatePostOutput!
+  editPost(data: EditPostInput!): EditPostOutput!
+  deletePost(data: DeletePostInput!): DeletePostOutput!
+  signupUser(data: SignUpUserInput!): SignUpUserOutput!
 }
 
-input SignupUserInput {
-  name: String
+input CreateCommentInput {
+  postId: Float!
+  text: String!
+}
+
+input ToggleLikeInput {
+  postId: Float!
+}
+
+input CreatePostInput {
+  text: String!
+}
+
+input EditPostInput {
+  text: String!
+  postId: Float!
+}
+
+input DeletePostInput {
+  postId: Float!
+}
+
+input SignUpUserInput {
+  name: String!
 }

@@ -14,5 +14,5 @@ export class Comment {
   user: User;
 
   @Field(() => Post)
-  post?: Post;
+  post: Post;
 }

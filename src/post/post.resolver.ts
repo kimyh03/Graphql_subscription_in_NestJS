@@ -71,6 +71,7 @@ export class PostResolver {
     }
   }
 
+  @UseGuards(LogInOnly)
   @Query(() => Post)
   async getPostDetail(
     @Args('data') data: GetPostDetailInput,

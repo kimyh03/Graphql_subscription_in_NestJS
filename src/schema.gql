@@ -79,7 +79,6 @@ type Mutation {
   createComment(data: CreateCommentInput!): Comment!
   toggleLikeOnPost(data: ToggleLikeOnPostInput!): String!
   toggleLikeOnComment(data: ToggleLikeOnCommentInput!): String!
-  potatoReady: Boolean!
   createPost(data: CreatePostInput!): Post!
   editPost(data: EditPostInput!): Post!
   deletePost(data: DeletePostInput!): String!
@@ -127,5 +126,4 @@ input EditProfileInput {
 
 type Subscription {
   newNotification: Notification!
-  waitPotato: String!
 }

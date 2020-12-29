@@ -7,6 +7,7 @@ import { NotificationModule } from './notification/notification.module';
 import { PostModule } from './post/post.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { SharedModule } from './shared/Shared.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -31,6 +32,7 @@ import { ConfigModule } from '@nestjs/config';
     CommentModule,
     NotificationModule,
     AuthModule,
+    SharedModule,
   ],
   controllers: [],
   providers: [],

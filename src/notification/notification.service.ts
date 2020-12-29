@@ -25,6 +25,7 @@ export class NotificationService {
           connect: { id: postId },
         },
       },
+      include: { sender: true, post: true },
     });
   }
 

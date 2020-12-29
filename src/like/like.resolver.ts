@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/currentUser.decorator';
 import { LogInOnly } from 'src/auth/logInOnly.guard';
@@ -11,6 +11,8 @@ import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from '@prisma/client';
 import { PostService } from 'src/post/post.service';
 import { CommentService } from 'src/comment/comment.service';
+import { PubSub } from 'apollo-server-express';
+import { PUB_SUB } from 'src/shared/common.constants';
 
 @Resolver()
 export class LikeResolver {
@@ -20,6 +22,7 @@ export class LikeResolver {
     private readonly notificationService: NotificationService,
     private readonly commentService: CommentService,
     private readonly postService: PostService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
   @UseGuards(LogInOnly)
@@ -43,19 +46,23 @@ export class LikeResolver {
         status = 'created';
       }
       const authorId = await this.postService.getAuthorId(postId);
+      const recipientId = authorId;
       const existNotification = await this.notificationService.findExistOne(
         currentUser.id,
-        authorId,
+        recipientId,
         NotificationType.LIKE_ON_MY_POST,
       );
       if (!existNotification && currentUser.id !== authorId) {
         const newNotification = await this.notificationService.create(
           currentUser.id,
-          authorId,
+          recipientId,
           postId,
           NotificationType.LIKE_ON_MY_POST,
         );
-        //publish notification
+        this.pubSub.publish('newNotification', {
+          recipientId,
+          newNotification,
+        });
       }
       if (status === 'created') {
         return ' Like is created on the post';
@@ -92,19 +99,23 @@ export class LikeResolver {
         status = 'created';
       }
       const authorId = await this.commentService.getAuthorId(commentId);
+      const recipientId = authorId;
       const existNotification = await this.notificationService.findExistOne(
         currentUser.id,
-        authorId,
+        recipientId,
         NotificationType.LIKE_ON_MY_COMMENT,
       );
       if (!existNotification && currentUser.id !== authorId) {
         const newNotification = await this.notificationService.create(
           currentUser.id,
-          authorId,
+          recipientId,
           postId,
           NotificationType.LIKE_ON_MY_COMMENT,
         );
-        //publish notification
+        this.pubSub.publish('newNotification', {
+          recipientId,
+          newNotification,
+        });
       }
       if (status === 'created') {
         return ' Like is created on the comment';

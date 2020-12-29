@@ -1,10 +1,12 @@
-import { UseGuards } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { NotificationType, User } from '@prisma/client';
+import { PubSub } from 'apollo-server-express';
 import { CurrentUser } from 'src/auth/currentUser.decorator';
 import { LogInOnly } from 'src/auth/logInOnly.guard';
 import { NotificationService } from 'src/notification/notification.service';
 import { PostService } from 'src/post/post.service';
+import { PUB_SUB } from 'src/shared/common.constants';
 import { Comment } from 'src/shared/models/comment.model';
 import { CommentService } from './comment.service';
 import { CreateCommentInput } from './dto/createComment.dto';
@@ -15,6 +17,7 @@ export class CommentResolver {
     private readonly commentService: CommentService,
     private readonly postService: PostService,
     private readonly notificationService: NotificationService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
   @UseGuards(LogInOnly)
@@ -35,20 +38,24 @@ export class CommentResolver {
         mentionedUserId,
       );
       const authorId = await this.postService.getAuthorId(postId);
+      const recipientId = authorId;
       const existNotification = await this.notificationService.findExistOne(
         currentUser.id,
-        authorId,
+        recipientId,
         NotificationType.COMMENT_ON_MY_POST,
       );
       if (!existNotification && currentUser.id !== authorId) {
         // For author of post
         const newNotification = await this.notificationService.create(
           currentUser.id,
-          authorId,
+          recipientId,
           postId,
           NotificationType.COMMENT_ON_MY_POST,
         );
-        //Publish notification
+        this.pubSub.publish('newNotification', {
+          recipientId,
+          newNotification,
+        });
       }
       if (mentionedUserId) {
         // For mentioned user of comment
@@ -58,7 +65,10 @@ export class CommentResolver {
           postId,
           NotificationType.COMMENT_MENTIONED_ME,
         );
-        //Publish notification
+        this.pubSub.publish('newNotification', {
+          mentionedUserId,
+          newNotification,
+        });
       }
       return newComment;
     } catch (error) {

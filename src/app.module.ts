@@ -1,9 +1,4 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import { CommentModule } from './comment/comment.module';
@@ -13,7 +8,6 @@ import { PostModule } from './post/post.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { AssignUserMiddleware } from './auth/assignUser.middleware';
 
 @Module({
   imports: [
@@ -23,6 +17,13 @@ import { AssignUserMiddleware } from './auth/assignUser.middleware';
     GraphQLModule.forRoot({
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       installSubscriptionHandlers: true,
+      context: ({ req, connection }) => {
+        if (req) {
+          return { token: req.headers?.authorization?.split(' ')[1] };
+        } else {
+          return { token: connection?.context?.authorization?.split(' ')[1] };
+        }
+      },
     }),
     UserModule,
     PostModule,
@@ -34,10 +35,4 @@ import { AssignUserMiddleware } from './auth/assignUser.middleware';
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AssignUserMiddleware)
-      .forRoutes({ path: '/graphql', method: RequestMethod.ALL });
-  }
-}
+export class AppModule {}

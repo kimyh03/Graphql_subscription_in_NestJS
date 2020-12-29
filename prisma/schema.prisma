@@ -11,52 +11,86 @@ generator client {
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  name          String         @unique
-  posts         Post[]
-  comments      Comment[]
-  notifications Notification[]
-  lieks         Like[]
+  id                       Int             @id @default(autoincrement())
+  createdAt                DateTime        @default(now())
+  deletedAt                DateTime?
+  email                    String          @unique
+  name                     String
+  posts                    Post[]
+  comments                 Comment[]       @relation(name: "Writer")
+  mentionedComments        Comment[]       @relation(name: "Mentioned")
+  notificationsAsSender    Notification[]  @relation(name: "Sender")
+  notificationsAsRecipient Notification[]  @relation(name: "Recipient")
+  likesOnPost              LikeOnPost[]
+  likesOnComment           LikeOnComment[]
 }
 
 model Post {
-  id            Int            @id @default(autoincrement())
-  text          String
-  user          User           @relation(fields: [userId], references: [id])
-  userId        Int
-  comments      Comment[]
-  likes         Like[]
-  notifications Notification[]
+  id             Int             @id @default(autoincrement())
+  createdAt      DateTime        @default(now())
+  deletedAt      DateTime?
+  text           String
+  user           User            @relation(fields: [userId], references: [id])
+  userId         Int
+  comments       Comment[]
+  notifications  Notification[]
+  likesOnPost    LikeOnPost[]
+  LikesOnComment LikeOnComment[]
 }
 
 model Comment {
-  id     Int    @id @default(autoincrement())
-  user   User   @relation(fields: [userId], references: [id])
-  userId Int
-  post   Post   @relation(fields: [postId], references: [id])
-  postId Int
-  text   String
+  id              Int             @id @default(autoincrement())
+  createdAt       DateTime        @default(now())
+  deletedAt       DateTime?
+  user            User            @relation(name: "Writer", fields: [userId], references: [id])
+  userId          Int
+  post            Post            @relation(fields: [postId], references: [id])
+  postId          Int
+  text            String
+  likesOnComment  LikeOnComment[]
+  mentionedUser   User?           @relation(name: "Mentioned", fields: [mentionedUserId], references: [id])
+  mentionedUserId Int?
 }
 
-model Like {
-  id     Int  @id @default(autoincrement())
-  post   Post @relation(fields: [postId], references: [id])
-  postId Int
-  user   User @relation(fields: [userId], references: [id])
-  userId Int
+model LikeOnPost {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  post      Post      @relation(fields: [postId], references: [id])
+  postId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model LikeOnComment {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  post      Post      @relation(fields: [postId], references: [id])
+  postId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  comment   Comment   @relation(fields: [commentId], references: [id])
+  commentId Int
 }
 
 model Notification {
-  id        Int              @id @default(autoincrement())
-  user      User             @relation(fields: [userId], references: [id])
-  userId    Int
-  post      Post             @relation(fields: [postId], references: [id])
-  postId    Int
-  type      NotificationType
-  isChecked Boolean          @default(false)
+  id          Int              @id @default(autoincrement())
+  createdAt   DateTime         @default(now())
+  deletedAt   DateTime?
+  sender      User             @relation(name: "Sender", fields: [senderId], references: [id])
+  senderId    Int
+  recipient   User             @relation(name: "Recipient", fields: [recipientId], references: [id])
+  recipientId Int
+  post        Post             @relation(fields: [postId], references: [id])
+  postId      Int
+  type        NotificationType
+  isChecked   Boolean          @default(false)
 }
 
 enum NotificationType {
-  COMMENT
-  LIKE
+  COMMENT_ON_MY_POST
+  COMMENT_MENTIONED_ME
+  LIKE_ON_MY_POST
+  LIKE_ON_MY_COMMENT
 }

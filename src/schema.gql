@@ -2,14 +2,7 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Comment {
-  id: ID!
-  text: String!
-  user: User!
-  post: Post!
-}
-
-type Like {
+type LikeOnPost {
   id: ID!
   user: User!
   post: Post!
@@ -17,15 +10,30 @@ type Like {
 
 type Notification {
   id: ID!
-  user: User!
+  recipient: User!
+  sender: User!
   post: Post!
   isChecked: Boolean!
-  type: NotificationTypea!
+  type: NotificationType!
 }
 
-enum NotificationTypea {
-  COMMENT
-  LIKE
+enum NotificationType {
+  COMMENT_ON_MY_POST
+  COMMENT_MENTIONED_ME
+  LIKE_ON_MY_POST
+  LIKE_ON_MY_COMMENT
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  posts: [Post!]
+  comments: [Comment!]
+  likesOnPost: [LikeOnPost!]
+  likesOnComment: [LikeOnComment!]
+  notificationsAsRecipient: [Notification!]
+  notificationsAsSender: [Notification!]
 }
 
 type Post {
@@ -33,83 +41,65 @@ type Post {
   text: String!
   user: User!
   comments: [Comment!]
-  likes: [Like!]
+  likesOnPost: [LikeOnPost!]
+  likesOnComment: [LikeOnComment!]
   notifications: [Notification!]
 }
 
-type User {
+type LikeOnComment {
   id: ID!
-  name: String!
-  posts: [Post!]
-  comments: [Comment!]
-  likes: [Like!]
-  notifications: [Notification!]
+  user: User!
+  post: Post!
+  comment: Comment!
 }
 
-type CreateCommentOutput {
-  ok: Boolean!
-  error: String
+type Comment {
+  id: ID!
+  text: String!
+  user: User!
+  post: Post!
+  likesOnComment: [LikeOnComment!]
 }
 
-type ToggleLikeOutput {
-  ok: Boolean!
-  error: String
-}
-
-type CreatePostOutput {
-  ok: Boolean!
-  error: String
-  post: Post
-}
-
-type EditPostOutput {
-  ok: Boolean!
-  error: String
-  post: Post
-}
-
-type DeletePostOutput {
-  ok: Boolean!
-  error: String
-}
-
-type SignUpUserOutput {
-  ok: Boolean!
-  error: String
-  token: String
-}
-
-type GetMeOutput {
-  ok: Boolean!
-  error: String
-  user: User
+type Auth {
+  user: User!
+  token: String!
 }
 
 type Query {
-  getPostDetail(data: GetPostInput!): DeletePostOutput!
-  getMe: GetMeOutput!
+  getPostDetail(data: GetPostDetailInput!): Post!
+  getMe: User!
 }
 
-input GetPostInput {
+input GetPostDetailInput {
   postId: Float!
 }
 
 type Mutation {
-  createComment(data: CreateCommentInput!): CreateCommentOutput!
-  toggleLike(data: ToggleLikeInput!): ToggleLikeOutput!
-  createPost(data: CreatePostInput!): CreatePostOutput!
-  editPost(data: EditPostInput!): EditPostOutput!
-  deletePost(data: DeletePostInput!): DeletePostOutput!
-  signupUser(data: SignUpUserInput!): SignUpUserOutput!
+  createComment(data: CreateCommentInput!): Comment!
+  toggleLikeOnPost(data: ToggleLikeOnPostInput!): String!
+  toggleLikeOnComment(data: ToggleLikeOnCommentInput!): String!
+  createPost(data: CreatePostInput!): Post!
+  editPost(data: EditPostInput!): Post!
+  deletePost(data: DeletePostInput!): String!
+  signupUser(data: SignUpUserInput!): Auth!
+  signOutUser: String!
+  editProfile(data: EditProfileInput!): User!
 }
 
 input CreateCommentInput {
   postId: Float!
+  mentionedUserId: Float
   text: String!
 }
 
-input ToggleLikeInput {
+input ToggleLikeOnPostInput {
   postId: Float!
+}
+
+input ToggleLikeOnCommentInput {
+  postId: Float!
+  commentId: Float!
 }
 
 input CreatePostInput {
@@ -127,4 +117,13 @@ input DeletePostInput {
 
 input SignUpUserInput {
   name: String!
+  email: String!
+}
+
+input EditProfileInput {
+  name: String!
+}
+
+type Subscription {
+  subNotification: Notification!
 }

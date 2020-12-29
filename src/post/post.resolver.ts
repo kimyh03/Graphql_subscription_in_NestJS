@@ -6,92 +6,93 @@ import {
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/currentUser.decorator';
 import { LogInOnly } from 'src/auth/logInOnly.guard';
-import { User } from 'src/user/user';
 import { PostService } from './post.service';
-import { CreatePostOutput, CreatePostInput } from './dto/createPost.dto';
-import { EditPostOutput, EditPostInput } from './dto/editPost.dto';
-import { DeletePostOutput, DeletePostInput } from './dto/deletePost.dto';
-import {
-  GetPostDetailInput,
-  GetPostDetailOutput,
-} from './dto/getPostDetail.dto';
+import { CreatePostInput } from './dto/createPost.dto';
+import { EditPostInput } from './dto/editPost.dto';
+import { DeletePostInput } from './dto/deletePost.dto';
+import { GetPostDetailInput } from './dto/getPostDetail.dto';
+import { User } from 'src/shared/models/user.model';
+import { Post } from 'src/shared/models/post.model';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Resolver()
 export class PostResolver {
-  constructor(private readonly postService: PostService) {}
+  constructor(
+    private readonly postService: PostService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   @UseGuards(LogInOnly)
-  @Mutation(() => CreatePostOutput)
+  @Mutation(() => Post)
   async createPost(
     @CurrentUser() currentUser: User,
     @Args('data') data: CreatePostInput,
-  ): Promise<CreatePostOutput> {
+  ) {
     const { text } = data;
     try {
-      await this.postService.create(currentUser.id, text);
-      return {
-        ok: true,
-        error: null,
-      };
+      return await this.postService.create(currentUser.id, text);
     } catch (error) {
-      return {
-        ok: false,
-        error: error.message,
-      };
+      throw new Error(error.message);
     }
   }
 
   @UseGuards(LogInOnly)
-  @Mutation(() => EditPostOutput)
+  @Mutation(() => Post)
   async editPost(
     @CurrentUser() currentUser: User,
     @Args('data') data: EditPostInput,
-  ): Promise<EditPostOutput> {
+  ) {
     const { postId, text } = data;
     try {
       const post = await this.postService.findOneById(postId);
       if (!post) throw new NotFoundException();
       if (post.userId !== currentUser.id) throw new UnauthorizedException();
-      await this.postService.edit(postId, text);
-      return { ok: true, error: null };
+      return await this.postService.edit(postId, text);
     } catch (error) {
-      return { ok: false, error: error.message };
+      throw new Error(error.message);
     }
   }
 
   @UseGuards(LogInOnly)
-  @Mutation(() => DeletePostOutput)
+  @Mutation(() => String)
   async deletePost(
     @CurrentUser() currentUser: User,
     @Args('data') data: DeletePostInput,
-  ): Promise<DeletePostOutput> {
+  ) {
     const { postId } = data;
     try {
       const post = await this.postService.findOneById(postId);
       if (!post) throw new NotFoundException();
       if (post.userId !== currentUser.id) throw new UnauthorizedException();
       await this.postService.delete(postId);
-      return { ok: true, error: null };
+      return 'The post was deleted!';
     } catch (error) {
-      return { ok: false, error: error.message };
+      throw new Error(error.message);
     }
   }
 
-  @Query(() => GetPostDetailOutput)
+  @Query(() => Post)
   async getPostDetail(
     @Args('data') data: GetPostDetailInput,
-  ): Promise<GetPostDetailOutput> {
+    @CurrentUser() currenUser: User,
+  ) {
     const { postId } = data;
     try {
-      const post = await this.postService.findOneById(postId, [
-        'user',
-        'likes',
-        'comments',
-      ]);
+      const post = await this.postService.findOneById(postId);
       if (!post) throw new NotFoundException();
-      return { ok: true, error: null, post };
+      if (post.deletedAt !== null) throw new Error('삭제된 게시물 입니다.');
+      const existNotifications = await this.notificationService.findExistAll(
+        postId,
+        currenUser.id,
+      );
+      if (existNotifications) {
+        existNotifications.forEach((notification) => {
+          this.notificationService.setIsChekcedTrue(notification.id);
+        });
+      }
+      return post;
     } catch (error) {
-      return { ok: false, error: error.message, post: null };
+      throw new Error(error.message);
     }
   }
 }

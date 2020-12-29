@@ -1,11 +1,7 @@
-import { InputType, ObjectType, Field } from '@nestjs/graphql';
-import { BaseOutput } from '../../shared/baseOutput';
+import { InputType, Field } from '@nestjs/graphql';
 
 @InputType()
 export class DeletePostInput {
   @Field()
   postId: number;
 }
-
-@ObjectType()
-export class DeletePostOutput extends BaseOutput {}

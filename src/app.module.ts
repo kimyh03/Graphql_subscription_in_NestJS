@@ -22,6 +22,7 @@ import { AssignUserMiddleware } from './auth/assignUser.middleware';
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      installSubscriptionHandlers: true,
     }),
     UserModule,
     PostModule,

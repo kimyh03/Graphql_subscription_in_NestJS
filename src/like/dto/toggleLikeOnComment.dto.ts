@@ -1,13 +1,10 @@
 import { Field, InputType } from '@nestjs/graphql';
 
 @InputType()
-export class CreateCommentInput {
+export class ToggleLikeOnCommentInput {
   @Field()
   postId: number;
 
-  @Field({ nullable: true })
-  mentionedUserId?: number;
-
   @Field()
-  text: string;
+  commentId: number;
 }

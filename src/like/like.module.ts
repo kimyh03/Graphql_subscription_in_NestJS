@@ -1,9 +1,21 @@
 import { Module } from '@nestjs/common';
-import { LikeService } from './like.service';
-import { LikeResolver } from './like.resolver';
+import { CommentService } from 'src/comment/comment.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { PostService } from 'src/post/post.service';
 import { PrismaService } from 'src/prisma.service';
+import { LikeResolver } from './like.resolver';
+import { LikeOnCommentService } from './likeOnComment.service';
+import { LikeOnPostService } from './likeOnPost.service';
 
 @Module({
-  providers: [LikeService, LikeResolver, PrismaService],
+  providers: [
+    LikeOnCommentService,
+    LikeOnPostService,
+    LikeResolver,
+    PrismaService,
+    NotificationService,
+    PostService,
+    CommentService,
+  ],
 })
 export class LikeModule {}

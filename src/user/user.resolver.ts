@@ -1,45 +1,65 @@
 import 'reflect-metadata';
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
-import { User } from './user';
 import { UserService } from './user.service';
 import { AuthService } from 'src/auth/auth.service';
-import { SignUpUserInput, SignUpUserOutput } from './dto/signUpUser.dto';
+import { SignUpUserInput } from './dto/signUpUser.dto';
 import { CurrentUser } from 'src/auth/currentUser.decorator';
-import { GetMeOutput } from './dto/getMe.dto';
 import { UseGuards } from '@nestjs/common';
 import { LogInOnly } from 'src/auth/logInOnly.guard';
+import { User } from 'src/shared/models/user.model';
+import { Auth } from 'src/shared/models/auth.model';
+import { EditProfileInput } from './dto/editProfile.dto';
 
-@Resolver(User)
+@Resolver()
 export class UserResolver {
   constructor(
     private readonly userService: UserService,
     private readonly authService: AuthService,
   ) {}
 
-  @Mutation(() => SignUpUserOutput)
-  async signupUser(
-    @Args('data') data: SignUpUserInput,
-  ): Promise<SignUpUserOutput> {
+  @Mutation(() => Auth)
+  async signupUser(@Args('data') data: SignUpUserInput) {
     try {
-      const { name } = data;
-      const newUser = await this.userService.create(name);
+      const { name, email } = data;
+      const newUser = await this.userService.create(name, email);
       const token = this.authService.sign(newUser.id);
-      return { ok: true, error: null, token };
+      return { user: newUser, token };
     } catch (error) {
-      return { ok: false, error: error.message, token: null };
+      throw new Error(error.message);
     }
   }
 
   @UseGuards(LogInOnly)
-  @Query(() => GetMeOutput)
-  async getMe(@CurrentUser() currnetUser: User): Promise<GetMeOutput> {
+  @Query(() => User)
+  async getMe(@CurrentUser() currnetUser: User) {
     try {
-      const user = await this.userService.findOneById(currnetUser.id, [
-        'posts',
-      ]);
-      return { ok: true, error: null, user };
+      const user = await this.userService.findOneById(currnetUser.id);
+      return user;
     } catch (error) {
-      return { ok: false, error: error.message, user: null };
+      throw new Error(error.message);
+    }
+  }
+
+  @UseGuards(LogInOnly)
+  @Mutation(() => String)
+  async signOutUser(@CurrentUser() currentUser: User) {
+    try {
+      await this.userService.delete(currentUser.id);
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  @UseGuards(LogInOnly)
+  @Mutation(() => User)
+  async editProfile(
+    @CurrentUser() currentUser: User,
+    @Args('data') data: EditProfileInput,
+  ) {
+    try {
+      return await this.userService.update(currentUser.id, data);
+    } catch (error) {
+      throw new Error(error.message);
     }
   }
 }

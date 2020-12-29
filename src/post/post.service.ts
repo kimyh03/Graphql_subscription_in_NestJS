@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma.service';
 export class PostService {
   constructor(@Inject(PrismaService) private prismaService: PrismaService) {}
   async create(userId: number, text: string) {
-    await this.prismaService.post.create({
+    return await this.prismaService.post.create({
       data: {
         user: {
           connect: {
@@ -17,27 +17,32 @@ export class PostService {
     });
   }
 
-  async findOneById(postId: number, relations?: string[]) {
+  async findOneById(postId: number) {
     return await this.prismaService.post.findUnique({
       where: { id: postId },
       include: {
-        user: relations?.includes('user'),
-        likes: relations?.includes('likes'),
-        comments: relations?.includes('comments'),
+        user: true,
+        likesOnPost: true,
+        comments: { include: { likesOnComment: true, mentionedUser: true } },
       },
     });
   }
 
   async edit(postId: number, text: string) {
-    await this.prismaService.post.update({
+    return await this.prismaService.post.update({
       where: { id: postId },
       data: { text },
     });
   }
 
   async delete(postId: number) {
-    await this.prismaService.post.delete({
+    await this.prismaService.post.update({
       where: { id: postId },
+      data: { deletedAt: new Date() },
     });
+  }
+  async getAuthorId(postId: number) {
+    return (await this.prismaService.post.findUnique({ where: { id: postId } }))
+      .userId;
   }
 }

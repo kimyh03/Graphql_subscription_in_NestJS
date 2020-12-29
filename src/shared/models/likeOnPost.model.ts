@@ -1,9 +1,9 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Post } from 'src/post/post';
-import { User } from 'src/user/user';
+import { Post } from './post.model';
+import { User } from './user.model';
 
 @ObjectType()
-export class Like {
+export class LikeOnPost {
   @Field(() => ID)
   id: number;
 

@@ -1,9 +1,9 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { Post } from 'src/post/post';
-import { User } from 'src/user/user';
-import { NotificationType } from './dto/NotificationTypeEnum';
+import { NotificationType } from '@prisma/client';
+import { Post } from './post.model';
+import { User } from './user.model';
 
-registerEnumType(NotificationType, { name: 'NotificationTypea' });
+registerEnumType(NotificationType, { name: 'NotificationType' });
 
 @ObjectType()
 export class Notification {
@@ -11,7 +11,10 @@ export class Notification {
   id: number;
 
   @Field(() => User)
-  user: User;
+  recipient: User;
+
+  @Field(() => User)
+  sender: User;
 
   @Field(() => Post)
   post: Post;

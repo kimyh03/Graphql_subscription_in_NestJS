@@ -2,11 +2,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
-export class LikeService {
+export class LikeOnPostService {
   constructor(@Inject(PrismaService) private prismaService: PrismaService) {}
 
   async findOneByPostIdAndUserId(postId: number, userId: number) {
-    return await this.prismaService.like.findFirst({
+    return await this.prismaService.likeOnPost.findFirst({
       where: {
         post: { id: postId },
         user: { id: userId },
@@ -15,7 +15,7 @@ export class LikeService {
   }
 
   async create(postId: number, userId: number) {
-    return await this.prismaService.like.create({
+    return await this.prismaService.likeOnPost.create({
       data: {
         user: {
           connect: {
@@ -32,7 +32,7 @@ export class LikeService {
   }
 
   async delete(likeId) {
-    await this.prismaService.like.delete({
+    await this.prismaService.likeOnPost.delete({
       where: { id: likeId },
     });
   }

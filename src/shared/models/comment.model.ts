@@ -1,6 +1,7 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { User } from 'src/user/user';
-import { Post } from 'src/post/post';
+import { LikeOnComment } from './likeOnComment.model';
+import { Post } from './post.model';
+import { User } from './user.model';
 
 @ObjectType()
 export class Comment {
@@ -15,4 +16,7 @@ export class Comment {
 
   @Field(() => Post)
   post: Post;
+
+  @Field(() => [LikeOnComment], { nullable: true })
+  likesOnComment?: LikeOnComment[];
 }

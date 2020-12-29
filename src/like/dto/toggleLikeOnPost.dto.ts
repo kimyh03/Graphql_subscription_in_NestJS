@@ -1,7 +1,7 @@
 import { Field, InputType } from '@nestjs/graphql';
 
 @InputType()
-export class GetPostDetailInput {
+export class ToggleLikeOnPostInput {
   @Field()
   postId: number;
 }

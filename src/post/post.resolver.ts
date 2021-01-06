@@ -14,13 +14,36 @@ import { GetPostDetailInput } from './dto/getPostDetail.dto';
 import { User } from 'src/shared/models/user.model';
 import { Post } from 'src/shared/models/post.model';
 import { NotificationService } from 'src/notification/notification.service';
+import { CacheService } from 'src/shared/cache/cache.service';
 
 @Resolver()
 export class PostResolver {
   constructor(
     private readonly postService: PostService,
     private readonly notificationService: NotificationService,
+    private readonly cacheService: CacheService,
   ) {}
+
+  @Query(() => String)
+  async getRedis(@Args('key') key: string) {
+    try {
+      const res = await this.cacheService.get(key);
+      return res;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async setRedis(@Args('key') key: string, @Args('value') value: string) {
+    try {
+      await this.cacheService.set(key, value);
+      return true;
+    } catch (error) {
+      console.log(error.message);
+      return false;
+    }
+  }
 
   @UseGuards(LogInOnly)
   @Mutation(() => Post)

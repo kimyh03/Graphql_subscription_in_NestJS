@@ -67,6 +67,7 @@ type Auth {
 }
 
 type Query {
+  getRedis(key: String!): String!
   getPostDetail(data: GetPostDetailInput!): Post!
   getMe: User!
 }
@@ -79,6 +80,7 @@ type Mutation {
   createComment(data: CreateCommentInput!): Comment!
   toggleLikeOnPost(data: ToggleLikeOnPostInput!): String!
   toggleLikeOnComment(data: ToggleLikeOnCommentInput!): String!
+  setRedis(value: String!, key: String!): Boolean!
   createPost(data: CreatePostInput!): Post!
   editPost(data: EditPostInput!): Post!
   deletePost(data: DeletePostInput!): String!

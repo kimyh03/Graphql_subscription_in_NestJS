@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { PubSubModule } from './shared/pubsub/pubsub.module';
 import { ConfigModule } from '@nestjs/config';
+import { RedisCacheModule } from './shared/cache/cache.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ConfigModule } from '@nestjs/config';
     NotificationModule,
     AuthModule,
     PubSubModule,
+    RedisCacheModule,
   ],
   controllers: [],
   providers: [],

@@ -6,7 +6,7 @@ import { CurrentUser } from 'src/auth/currentUser.decorator';
 import { LogInOnly } from 'src/auth/logInOnly.guard';
 import { NotificationService } from 'src/notification/notification.service';
 import { PostService } from 'src/post/post.service';
-import { PUB_SUB } from 'src/shared/common.constants';
+import { PUB_SUB } from 'src/shared/pubsub/pubsub.constants';
 import { Comment } from 'src/shared/models/comment.model';
 import { CommentService } from './comment.service';
 import { CreateCommentInput } from './dto/createComment.dto';

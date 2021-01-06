@@ -2,7 +2,7 @@ import { Inject, UseGuards } from '@nestjs/common';
 import { Resolver, Subscription } from '@nestjs/graphql';
 import { PubSub } from 'apollo-server-express';
 import { LogInOnly } from 'src/auth/logInOnly.guard';
-import { PUB_SUB } from 'src/shared/common.constants';
+import { PUB_SUB } from 'src/shared/pubsub/pubsub.constants';
 import { Notification } from 'src/shared/models/notification.model';
 import { NotificationService } from './notification.service';
 

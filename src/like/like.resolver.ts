@@ -12,7 +12,7 @@ import { NotificationType } from '@prisma/client';
 import { PostService } from 'src/post/post.service';
 import { CommentService } from 'src/comment/comment.service';
 import { PubSub } from 'apollo-server-express';
-import { PUB_SUB } from 'src/shared/common.constants';
+import { PUB_SUB } from 'src/shared/pubsub/pubsub.constants';
 
 @Resolver()
 export class LikeResolver {

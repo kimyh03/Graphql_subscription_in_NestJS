@@ -67,7 +67,10 @@ type Auth {
 }
 
 type Query {
+  getSentryError: String!
+  getSentryError2: String!
   getRedis(key: String!): String!
+  getPostFromRedis(id: Float!): Post!
   getPostDetail(data: GetPostDetailInput!): Post!
   getMe: User!
 }

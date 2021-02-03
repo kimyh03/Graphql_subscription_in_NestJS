@@ -2,6 +2,7 @@ import {
   NotFoundException,
   UnauthorizedException,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/currentUser.decorator';
@@ -15,7 +16,10 @@ import { User } from 'src/shared/models/user.model';
 import { Post } from 'src/shared/models/post.model';
 import { NotificationService } from 'src/notification/notification.service';
 import { CacheService } from 'src/shared/cache/cache.service';
+import { captureException } from '@sentry/node';
+import { SentryInterceptor } from '../shared/interceptors/sentry.interceptor';
 
+@UseInterceptors(SentryInterceptor)
 @Resolver()
 export class PostResolver {
   constructor(
@@ -25,13 +29,20 @@ export class PostResolver {
   ) {}
 
   @Query(() => String)
+  async getSentryError() {
+    throw new Error('hello!');
+  }
+
+  @Query(() => String)
+  async getSentryError2() {
+    throw new Error('hello second!');
+  }
+
+  @Query(() => String)
   async getRedis(@Args('key') key: string) {
-    try {
-      const res = await this.cacheService.get(key);
-      return res;
-    } catch (error) {
-      console.log(error);
-    }
+    const res = await this.cacheService.get(key);
+    if (!res) throw new NotFoundException();
+    return res;
   }
 
   @Mutation(() => Boolean)
@@ -73,6 +84,23 @@ export class PostResolver {
       return await this.postService.edit(postId, text);
     } catch (error) {
       throw new Error(error.message);
+    }
+  }
+
+  @Query(() => Post)
+  async getPostFromRedis(@Args('id') id: number) {
+    try {
+      const postFromRedis = await this.cacheService.get(`post_${id}`);
+      console.log(postFromRedis);
+      if (postFromRedis) {
+        return postFromRedis;
+      } else {
+        const postFromDB = await this.postService.findOneById(id);
+        await this.cacheService.set(`post_${id}`, postFromDB);
+        return postFromDB;
+      }
+    } catch (error) {
+      console.log(error.message);
     }
   }
 
